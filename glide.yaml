@@ -1,0 +1,8 @@
+package: github.com/ferdinandhuebner/terraform-provider-skydns
+import:
+- package: github.com/hashicorp/terraform
+  version: v0.9.5
+  subpackages:
+  - plugin
+- package: github.com/coreos/etcd/client
+  version: v3.1.8
