@@ -3,11 +3,17 @@ package main
 import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"strings"
 )
 
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
+			"skydns_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "/skydns/",
+			},
 			"endpoints": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -51,7 +57,12 @@ func providerConfigure(data *schema.ResourceData) (interface{}, error) {
 		endpoints = append(endpoints, endpoint.(string))
 	}
 
-	config := Config{
+	prefix := data.Get("skydns_prefix").(string)
+	if !strings.HasSuffix(prefix, "/") {
+		prefix = prefix + "/"
+	}
+
+	config := EtcdConfig{
 		Endpoints: endpoints,
 		Username:  data.Get("username").(string),
 		Password:  data.Get("password").(string),
@@ -60,5 +71,13 @@ func providerConfigure(data *schema.ResourceData) (interface{}, error) {
 		KeyFile:   data.Get("key_file").(string),
 	}
 
-	return config.Client()
+	client, err := config.Client()
+	if err != nil {
+		return nil, err
+	}
+
+	return Config{
+		Client:       client,
+		SkyDnsPrefix: prefix,
+	}, nil
 }

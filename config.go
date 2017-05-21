@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Config struct {
+type EtcdConfig struct {
 	Endpoints []string
 	Username  string
 	Password  string
@@ -16,7 +16,12 @@ type Config struct {
 	KeyFile   string
 }
 
-func getTlsTransport(config *Config) (*http.Transport, error) {
+type Config struct {
+	SkyDnsPrefix string
+	Client       *client.Client
+}
+
+func getTlsTransport(config *EtcdConfig) (*http.Transport, error) {
 	caFile := config.CaFile
 	certFile := config.CertFile
 	keyFile := config.KeyFile
@@ -31,7 +36,7 @@ func getTlsTransport(config *Config) (*http.Transport, error) {
 	return transport.NewTransport(tls, defaultDialTimeout)
 }
 
-func (c *Config) Client() (*client.Client, error) {
+func (c *EtcdConfig) Client() (*client.Client, error) {
 	var tr client.CancelableTransport
 	if c.CaFile != "" && c.CertFile != "" && c.KeyFile != "" {
 		tlsTransport, err := getTlsTransport(c)
